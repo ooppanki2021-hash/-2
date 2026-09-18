@@ -1,0 +1,177 @@
+@import "tailwindcss";
+
+@layer base {
+  :root,
+  .theme-dark {
+    --bg-canvas: #0d1117;
+    --bg-canvas-subtle: #161b22;
+    --bg-canvas-muted: #21262d;
+    --border-color: #30363d;
+    --text-fg: #f0f6fc;
+    --text-muted: #8b949e;
+  }
+
+  .theme-dimmed {
+    --bg-canvas: #1c2128;
+    --bg-canvas-subtle: #22272e;
+    --bg-canvas-muted: #2d333b;
+    --border-color: #444c56;
+    --text-fg: #adbac7;
+    --text-muted: #768390;
+  }
+
+  .theme-light {
+    --bg-canvas: #ffffff;
+    --bg-canvas-subtle: #f6f8fa;
+    --bg-canvas-muted: #eaeef2;
+    --border-color: #d0d7de;
+    --text-fg: #1f2328;
+    --text-muted: #656d76;
+  }
+
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--text-fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    min-height: 100vh;
+  }
+}
+
+/* Theme color utility mapping */
+.bg-canvas {
+  background-color: var(--bg-canvas) !important;
+}
+.bg-canvas-subtle {
+  background-color: var(--bg-canvas-subtle) !important;
+}
+.bg-canvas-muted {
+  background-color: var(--bg-canvas-muted) !important;
+}
+.border-border {
+  border-color: var(--border-color) !important;
+}
+.text-fg {
+  color: var(--text-fg) !important;
+}
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-canvas);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Markdown styling in README & issues viewer */
+.markdown-body {
+  font-size: 14px;
+  line-height: 1.6;
+  word-wrap: break-word;
+  color: var(--text-fg);
+}
+.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
+  margin-top: 24px;
+  margin-bottom: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text-fg);
+}
+.markdown-body h1 { font-size: 1.85em; padding-bottom: 0.3em; border-bottom: 1px solid var(--border-color); }
+.markdown-body h2 { font-size: 1.45em; padding-bottom: 0.3em; border-bottom: 1px solid var(--border-color); }
+.markdown-body h3 { font-size: 1.2em; }
+.markdown-body p { margin-bottom: 14px; }
+.markdown-body a { color: #58a6ff; text-decoration: none; }
+.markdown-body a:hover { text-decoration: underline; }
+.markdown-body ul, .markdown-body ol { padding-left: 2em; margin-bottom: 14px; }
+.markdown-body ul { list-style-type: disc; }
+.markdown-body ol { list-style-type: decimal; }
+.markdown-body li { margin-top: 0.25em; }
+.markdown-body code {
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-size: 85%;
+  background-color: var(--bg-canvas-muted);
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+.markdown-body pre {
+  padding: 16px;
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+  background-color: var(--bg-canvas-subtle);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-color);
+}
+.markdown-body pre code {
+  background-color: transparent;
+  padding: 0;
+}
+.markdown-body blockquote {
+  padding: 0 1em;
+  color: var(--text-muted);
+  border-left: 0.25em solid var(--border-color);
+  margin-bottom: 14px;
+}
+.markdown-body table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  width: 100%;
+  display: block;
+  overflow: auto;
+}
+.markdown-body table th, .markdown-body table td {
+  padding: 6px 13px;
+  border: 1px solid var(--border-color);
+}
+.markdown-body table th {
+  font-weight: 600;
+  background-color: var(--bg-canvas-subtle);
+}
+.markdown-body table tr:nth-child(2n) {
+  background-color: var(--bg-canvas-subtle);
+}
+.markdown-body img {
+  max-width: 100%;
+  box-sizing: content-box;
+  border-radius: 6px;
+}
+.markdown-body hr {
+  height: 0.2em;
+  padding: 0;
+  margin: 20px 0;
+  background-color: var(--border-color);
+  border: 0;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.15s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.2s ease-out forwards;
+}

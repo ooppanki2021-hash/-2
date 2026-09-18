@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@theme {
+  --color-canvas: #090c10;
+  --color-canvas-subtle: #121720;
+  --color-canvas-muted: #1c2331;
+  --color-border: #283347;
+  --color-fg: #f0f6fc;
+  --color-muted: #8b949e;
+  --color-yandex-red: #fc3f1d;
+  --color-yandex-yellow: #ffcc00;
+}
+
+:root {
+  --bg-main: #090c10;
+  --bg-card: #121720;
+  --bg-hover: #1c2331;
+  --border-col: #283347;
+  --text-main: #f0f6fc;
+  --text-dim: #8b949e;
+}
+
+/* Explicit opaque backgrounds so no transparent bleed-through happens */
+.bg-canvas {
+  background-color: #090c10 !important;
+}
+
+.bg-canvas-subtle {
+  background-color: #121720 !important;
+}
+
+.bg-canvas-muted {
+  background-color: #1c2331 !important;
+}
+
+.border-border {
+  border-color: #283347 !important;
+}
+
+.text-fg {
+  color: #f0f6fc !important;
+}
+
+.text-muted {
+  color: #8b949e !important;
+}
+
+body {
+  background-color: #090c10 !important;
+  color: #f0f6fc !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090c10;
+}
+::-webkit-scrollbar-thumb {
+  background: #283347;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #445470;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.15s ease-out forwards;
+}
