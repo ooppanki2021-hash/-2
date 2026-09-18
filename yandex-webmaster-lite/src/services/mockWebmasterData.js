@@ -1,6 +1,5 @@
 /**
- * Real verified data for https://zapahstarosti.ru (@inna.rossia)
- * Pulled directly from official Yandex Webmaster API v4
+ * Default verified profile and baseline data for Yandex Webmaster Lite
  */
 
 export const REAL_USER = {
@@ -38,7 +37,7 @@ export const INITIAL_SITES = [
     sitemaps_count: 1,
     has_critical_issues: false,
     warnings_count: 0,
-    recommendations_count: 3,
+    recommendations_count: 0,
   },
 ];
 
@@ -56,12 +55,12 @@ export const REAL_SITEMAP = [
 ];
 
 export const REAL_PAGES = [
-  { url: 'https://zapahstarosti.ru/', priority: '1.0', status: 200, last_access: '18 сентября 2026 (00:28)' },
-  { url: 'https://zapahstarosti.ru/kak-otlichit-istochnik-zapakha/', priority: '0.9', status: 200, last_access: '18 сентября 2026 (00:28)' },
-  { url: 'https://zapahstarosti.ru/chto-takoe-2-nonenal/', priority: '0.9', status: 200, last_access: '18 сентября 2026 (00:28)' },
-  { url: 'https://zapahstarosti.ru/ubrat-zapah/', priority: '0.8', status: 200, last_access: '18 сентября 2026 (00:28)' },
-  { url: 'https://zapahstarosti.ru/karta-osetii/', priority: '0.6', status: 200, last_access: '18 сентября 2026 (00:28)' },
-  { url: 'https://zapahstarosti.ru/o-proekte/', priority: '0.5', status: 200, last_access: '18 сентября 2026 (00:28)' },
+  { url: 'https://zapahstarosti.ru/', priority: '1.0', status: 200, last_access: '18 сентября 2026' },
+  { url: 'https://zapahstarosti.ru/kak-otlichit-istochnik-zapakha/', priority: '0.9', status: 200, last_access: '18 сентября 2026' },
+  { url: 'https://zapahstarosti.ru/chto-takoe-2-nonenal/', priority: '0.9', status: 200, last_access: '18 сентября 2026' },
+  { url: 'https://zapahstarosti.ru/ubrat-zapah/', priority: '0.8', status: 200, last_access: '18 сентября 2026' },
+  { url: 'https://zapahstarosti.ru/karta-osetii/', priority: '0.6', status: 200, last_access: '18 сентября 2026' },
+  { url: 'https://zapahstarosti.ru/o-proekte/', priority: '0.5', status: 200, last_access: '18 сентября 2026' },
 ];
 
 export const REAL_RECRAWL_QUEUE = [
@@ -79,7 +78,7 @@ export const REAL_DIAGNOSTICS = [
   {
     id: 'https',
     title: 'Протокол HTTPS и SSL-сертификат',
-    desc: 'Главное зеркало https://zapahstarosti.ru использует шифрование HTTPS, HSTS (max-age: 31556952) и валидный SSL-сертификат.',
+    desc: 'Главное зеркало https://zapahstarosti.ru использует защищенный протокол HTTPS и валидный SSL-сертификат.',
     severity: 'ok',
   },
   {
@@ -90,14 +89,14 @@ export const REAL_DIAGNOSTICS = [
   },
   {
     id: 'sitemap',
-    title: 'Sitemap.xml обработан Яндексом',
-    desc: 'Файл sitemap.xml успешно прочитан роботом Яндекса 11 сентября, содержит 6 URL, ошибок 0.',
+    title: 'Sitemap.xml обработан',
+    desc: 'Файл sitemap.xml содержит 6 URL, ошибок синтаксиса XML не обнаружено.',
     severity: 'ok',
   },
   {
     id: 'speed',
-    title: 'Ответ веб-сервера (GitHub.com / Varnish)',
-    desc: 'Сервер отвечает с кодом HTTP/2 200 OK за 83 мс с поддержкой сжатия gzip/brotli.',
+    title: 'Ответ веб-сервера',
+    desc: 'Веб-сервер сайта отвечает со статусом HTTP 200 OK.',
     severity: 'ok',
   },
   {
@@ -109,7 +108,7 @@ export const REAL_DIAGNOSTICS = [
   {
     id: 'filters',
     title: 'Поисковые фильтры и санкции Яндекса',
-    desc: 'На домен zapahstarosti.ru не наложены спам-фильтры. Индексация разрешена в штатном режиме.',
+    desc: 'Ограничений ранжирования не обнаружено. Индексация разрешена в штатном режиме.',
     severity: 'ok',
   },
 ];

@@ -16,7 +16,6 @@ import {
   MousePointerClick,
   Eye,
   Percent,
-  Navigation as CompassIcon,
   Key,
   Plus,
   Server,
@@ -65,15 +64,15 @@ export default function DashboardView() {
             Яндекс Вебмастер Lite
           </h2>
           <p className="text-sm text-gray-400 max-w-md mx-auto">
-            Введите адрес вашего сайта — приложение <strong className="text-white">автоматически просканирует</strong> robots.txt, sitemap.xml, SSL, ответ сервера, поисковые фразы и рассчитает ИКС.
+            Введите адрес вашего сайта — приложение выполнит реальную проверку HTTP-ответа, robots.txt, sitemap.xml и структуры страниц.
           </p>
         </div>
 
         {/* Form to auto-scan site */}
         <div className="p-6 sm:p-8 rounded-2xl bg-[#121720] border-2 border-[#283347] shadow-2xl space-y-4">
           <h3 className="text-base font-bold text-white flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-amber-400" />
-            <span>Автоматический сбор данных по сайту</span>
+            <Zap className="w-5 h-5 text-amber-400" />
+            <span>Проверить сайт и собрать данные</span>
           </h3>
 
           <form onSubmit={handleStartScan} className="flex flex-col sm:flex-row gap-2">
@@ -95,12 +94,12 @@ export default function DashboardView() {
               {isScanning ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Сканирование...</span>
+                  <span>Проверка...</span>
                 </>
               ) : (
                 <>
                   <Zap className="w-4 h-4" />
-                  <span>Собрать данные</span>
+                  <span>Проверить</span>
                 </>
               )}
             </button>
@@ -126,13 +125,13 @@ export default function DashboardView() {
           )}
 
           <div className="pt-4 border-t border-[#283347] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400">
-            <span>Хотите привязать свой Яндекс ID?</span>
+            <span>Хотите подключить официальный аккаунт Яндекса?</span>
             <button
               onClick={() => setCurrentTab('settings')}
               className="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 cursor-pointer"
             >
               <Key className="w-3.5 h-3.5" />
-              <span>Ввести OAuth-токен →</span>
+              <span>Яндекс ID и OAuth-токен →</span>
             </button>
           </div>
         </div>
@@ -142,6 +141,8 @@ export default function DashboardView() {
 
   const siteUrl = activeSite.unicode_host_url;
   const siteTitle = activeSite.title || activeSite.unicode_host_url;
+  const sqiValue = activeSite.sqi ?? 0;
+  const pagesCount = activeSite.pages_in_search ?? 0;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(siteUrl);
@@ -166,7 +167,7 @@ export default function DashboardView() {
               <h2 className="text-sm sm:text-base font-extrabold text-white tracking-tight">
                 {siteTitle}
               </h2>
-              <span className="text-[11px] text-gray-400">Данные сайта успешно подтянуты • Индексация активна</span>
+              <span className="text-[11px] text-gray-400">Мониторинг активен</span>
             </div>
           </div>
 
@@ -175,10 +176,10 @@ export default function DashboardView() {
               onClick={() => runAutoScan(siteUrl)}
               disabled={isScanning}
               className="px-3 py-1.5 rounded-xl bg-[#1c2331] hover:bg-[#252f42] text-amber-300 border border-amber-500/40 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-              title="Пересканировать и обновить данные"
+              title="Перепроверить сайт"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} />
-              <span>{isScanning ? 'Обновление...' : 'Обновить данные'}</span>
+              <span>{isScanning ? 'Проверка...' : 'Проверить сайт'}</span>
             </button>
 
             <button
@@ -258,7 +259,7 @@ export default function DashboardView() {
           >
             <Server className="w-4 h-4 text-blue-400 mb-1" />
             <span className="font-bold text-white block">Ответ сервера</span>
-            <span className="text-[11px] text-gray-400">HTTP 200 OK</span>
+            <span className="text-[11px] text-gray-400">HTTP-заголовки</span>
           </button>
 
           <button
@@ -284,9 +285,11 @@ export default function DashboardView() {
           </div>
           <div className="mt-2">
             <div className="text-2xl sm:text-3xl font-extrabold text-white font-mono">
-              {activeSite?.sqi || 40}
+              {sqiValue}
             </div>
-            <div className="text-[11px] text-emerald-400 font-bold mt-1">Индекс качества сайта</div>
+            <div className="text-[11px] text-gray-400 mt-1">
+              {sqiValue > 0 ? 'Индекс качества сайта' : 'Недостаточно данных для расчета'}
+            </div>
           </div>
         </div>
 
@@ -298,9 +301,11 @@ export default function DashboardView() {
           </div>
           <div className="mt-2">
             <div className="text-2xl sm:text-3xl font-extrabold text-white font-mono">
-              {activeSite?.pages_in_search || 1}
+              {pagesCount}
             </div>
-            <div className="text-[11px] text-gray-400 mt-1">Найдено в Sitemap</div>
+            <div className="text-[11px] text-gray-400 mt-1">
+              {pagesCount > 0 ? 'В базе робота Яндекса' : 'Страницы еще не обойдены'}
+            </div>
           </div>
         </div>
 
@@ -327,9 +332,11 @@ export default function DashboardView() {
           </div>
           <div className="mt-2">
             <div className="text-base sm:text-lg font-bold text-emerald-400">
-              SSL Активен
+              {siteUrl.startsWith('https://') ? 'SSL Активен' : 'HTTP (Без SSL)'}
             </div>
-            <div className="text-[11px] text-gray-400 mt-1">Безопасное соединение</div>
+            <div className="text-[11px] text-gray-400 mt-1">
+              {siteUrl.startsWith('https://') ? 'Безопасное соединение' : 'Незащищенный протокол'}
+            </div>
           </div>
         </div>
 

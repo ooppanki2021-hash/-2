@@ -3,15 +3,16 @@ import {
   getSavedSites,
   saveSites,
   fetchYandexUserInfo,
+  fetchUserHosts,
   sendUrlToYandexRecrawl,
 } from '../services/yandexApi';
+import { autoScanWebsite } from '../services/liveScanner';
 import {
   REAL_USER,
   REAL_TOKEN,
   INITIAL_SITES,
   REAL_SITEMAP,
   REAL_PAGES,
-  REAL_RECRAWL_QUEUE,
   REAL_ROBOTS_TXT,
   REAL_DIAGNOSTICS,
   EMPTY_HISTORY,
@@ -19,23 +20,15 @@ import {
 
 const WebmasterContext = createContext();
 
-// Clear any old legacy cache keys from earlier test versions
-if (typeof window !== 'undefined') {
-  try {
-    ['yandex_wm_lite_sites', 'yandex_wm_reindex_queue', 'yandex_wm_lite_sites_v2', 'yandex_wm_lite_sites_v3', 'yandex_wm_queries', 'yandex_wm_history'].forEach((k) => {
-      localStorage.removeItem(k);
-    });
-  } catch (e) {
-    console.warn('Storage cleanup:', e);
-  }
-}
-
 export function WebmasterProvider({ children }) {
-  const [sites, setSites] = useState(INITIAL_SITES);
-  const [activeSiteId, setActiveSiteId] = useState('https:zapahstarosti.ru:443');
+  const [sites, setSites] = useState(() => getSavedSites());
+  const [activeSiteId, setActiveSiteId] = useState(() => {
+    const saved = getSavedSites();
+    return saved.length > 0 ? saved[0].host_id : 'https:zapahstarosti.ru:443';
+  });
 
   const [currentTab, setCurrentTab] = useState('dashboard');
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState(() => localStorage.getItem('yandex_wm_theme') || 'dark');
   const [oauthToken, setOauthToken] = useState(REAL_TOKEN);
   const [yandexUser, setYandexUser] = useState(REAL_USER);
 
@@ -45,13 +38,18 @@ export function WebmasterProvider({ children }) {
   const [isTokenModalOpen, setIsTokenModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
 
+  // Auto-Scan & Sync State
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanProgress, setScanProgress] = useState(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+
   // Time range
   const [dateRange, setDateRange] = useState('30d');
 
   // Active Site
   const activeSite = sites.find((s) => s.host_id === activeSiteId) || sites[0];
 
-  // Real Site Data States (100% genuine zapahstarosti.ru data from Yandex Webmaster)
+  // Site Data States
   const [queries, setQueries] = useState([]);
   const [historyData, setHistoryData] = useState(EMPTY_HISTORY);
   const [pagesInSearch, setPagesInSearch] = useState(REAL_PAGES);
@@ -60,6 +58,16 @@ export function WebmasterProvider({ children }) {
   const [robotsTxt, setRobotsTxt] = useState(REAL_ROBOTS_TXT);
   const [diagnostics, setDiagnostics] = useState(REAL_DIAGNOSTICS);
 
+  // Clean legacy local storage
+  useEffect(() => {
+    try {
+      localStorage.removeItem('yandex_wm_lite_sites');
+      localStorage.removeItem('yandex_wm_reindex_queue');
+      localStorage.removeItem('yandex_wm_lite_sites_live_v4');
+      localStorage.removeItem('yandex_wm_reindex_queue_live_v4');
+    } catch (e) {}
+  }, []);
+
   const showToast = (message, type = 'success') => {
     setToast({ message, type, id: Date.now() });
     setTimeout(() => {
@@ -67,74 +75,98 @@ export function WebmasterProvider({ children }) {
     }, 3600);
   };
 
+  // Run Live Auto-Scan for any entered domain
+  const runAutoScan = async (siteUrl) => {
+    setIsScanning(true);
+    setScanProgress({ step: 1, text: 'Инициализация проверки...' });
+
+    try {
+      const result = await autoScanWebsite(siteUrl, (prog) => {
+        setScanProgress(prog);
+      });
+
+      // Update state with genuine parsed results
+      setRobotsTxt(result.robotsTxt);
+      setSitemaps(result.sitemaps);
+      setPagesInSearch(result.pagesInSearch);
+      setDiagnostics(result.diagnostics);
+      setQueries(result.queries);
+      setHistoryData(result.history);
+
+      // Check if site already exists in list
+      const existingIdx = sites.findIndex((s) => s.host_id === result.site.host_id);
+      let updatedSites;
+      if (existingIdx >= 0) {
+        updatedSites = [...sites];
+        updatedSites[existingIdx] = result.site;
+      } else {
+        updatedSites = [result.site, ...sites];
+      }
+
+      setSites(updatedSites);
+      setActiveSiteId(result.site.host_id);
+      saveSites(updatedSites);
+
+      showToast(`Сайт ${result.site.unicode_host_url} проверен!`, 'success');
+    } catch (err) {
+      showToast('Ошибка проверки: ' + err.message, 'error');
+    } finally {
+      setIsScanning(false);
+      setScanProgress(null);
+    }
+  };
+
+  // Sync with official Yandex API
+  const syncWithYandexApi = async (token) => {
+    setIsSyncing(true);
+    try {
+      const userInfo = await fetchYandexUserInfo(token);
+      setYandexUser(userInfo);
+
+      const hosts = await fetchUserHosts(token, userInfo.userId);
+      if (hosts && hosts.length > 0) {
+        setSites(hosts);
+        setActiveSiteId(hosts[0].host_id);
+        saveSites(hosts);
+        showToast(`Загружено ${hosts.length} сайтов из аккаунта @${userInfo.login}`, 'success');
+      } else {
+        showToast(`Авторизован как @${userInfo.login}`, 'success');
+      }
+    } catch (err) {
+      showToast('Ошибка синхронизации: ' + err.message, 'error');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const handleAddSite = (siteUrl) => {
-    let clean = siteUrl.trim();
-    if (!clean.startsWith('http')) {
-      clean = `https://${clean}`;
-    }
-    const host = clean.replace(/^https?:\/\//, '').replace(/\/$/, '');
-    const newHostId = `https:${host}:443`;
-
-    if (sites.some((s) => s.host_id === newHostId || s.unicode_host_url === clean)) {
-      showToast('Этот сайт уже есть в вашем списке!', 'warning');
-      return;
-    }
-
-    const newSite = {
-      host_id: newHostId,
-      unicode_host_url: clean,
-      ascii_host_url: clean,
-      verified: true,
-      sqi: 0,
-      sqi_diff: 0,
-      status: 'INDEXED',
-      main_mirror: clean,
-      pages_in_search: 1,
-      pages_excluded: 0,
-      pages_total_crawled: 1,
-      clicks_30d: 0,
-      impressions_30d: 0,
-      avg_position_30d: 0,
-      avg_ctr_30d: 0,
-      last_crawl_time: new Date().toISOString(),
-      last_deploy_hash: 'live-sync',
-      last_deploy_author: yandexUser.login || 'user',
-      turbo_pages_count: 0,
-      sitemaps_count: 1,
-      has_critical_issues: false,
-      warnings_count: 0,
-      recommendations_count: 0,
-    };
-
-    const updated = [newSite, ...sites];
-    setSites(updated);
-    setActiveSiteId(newHostId);
+    runAutoScan(siteUrl);
     setIsAddSiteModalOpen(false);
-    showToast(`Сайт ${host} успешно добавлен! 🚀`, 'success');
   };
 
   const handleDeleteSite = (hostId) => {
     if (sites.length <= 1) {
-      showToast('Нельзя удалить единственный активный сайт', 'warning');
+      showToast('Нельзя удалить единственный сайт', 'warning');
       return;
     }
     const updated = sites.filter((s) => s.host_id !== hostId);
     setSites(updated);
     setActiveSiteId(updated[0].host_id);
+    saveSites(updated);
     showToast('Сайт удален', 'info');
   };
 
   const addSitemapUrl = (sitemapUrl) => {
     const newItem = {
       url: sitemapUrl.trim(),
-      last_access: 'Только что отправлен в Яндекс',
+      last_access: 'Отправлен на обработку',
       status: 'OK',
       urls_count: 6,
       type: 'SITEMAP',
       errors_count: 0,
     };
     setSitemaps([newItem, ...sitemaps]);
-    showToast('Файл Sitemap успешно отправлен в Яндекс! 📄', 'success');
+    showToast('Файл Sitemap добавлен! 📄', 'success');
   };
 
   return (
@@ -178,6 +210,11 @@ export function WebmasterProvider({ children }) {
         handleAddSite,
         handleDeleteSite,
         addSitemapUrl,
+        runAutoScan,
+        isScanning,
+        scanProgress,
+        syncWithYandexApi,
+        isSyncing,
       }}
     >
       {children}
