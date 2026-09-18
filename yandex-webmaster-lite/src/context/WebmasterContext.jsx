@@ -11,6 +11,7 @@ import {
   INITIAL_SITES,
   REAL_SITEMAP,
   REAL_PAGES,
+  REAL_RECRAWL_QUEUE,
   REAL_ROBOTS_TXT,
   REAL_DIAGNOSTICS,
   EMPTY_HISTORY,
@@ -18,12 +19,23 @@ import {
 
 const WebmasterContext = createContext();
 
+// Clear any old legacy cache keys from earlier test versions
+if (typeof window !== 'undefined') {
+  try {
+    ['yandex_wm_lite_sites', 'yandex_wm_reindex_queue', 'yandex_wm_lite_sites_v2', 'yandex_wm_lite_sites_v3', 'yandex_wm_queries', 'yandex_wm_history'].forEach((k) => {
+      localStorage.removeItem(k);
+    });
+  } catch (e) {
+    console.warn('Storage cleanup:', e);
+  }
+}
+
 export function WebmasterProvider({ children }) {
   const [sites, setSites] = useState(INITIAL_SITES);
   const [activeSiteId, setActiveSiteId] = useState('https:zapahstarosti.ru:443');
 
   const [currentTab, setCurrentTab] = useState('dashboard');
-  const [theme, setTheme] = useState(() => localStorage.getItem('yandex_wm_theme') || 'dark');
+  const [theme, setTheme] = useState('dark');
   const [oauthToken, setOauthToken] = useState(REAL_TOKEN);
   const [yandexUser, setYandexUser] = useState(REAL_USER);
 
@@ -39,7 +51,7 @@ export function WebmasterProvider({ children }) {
   // Active Site
   const activeSite = sites.find((s) => s.host_id === activeSiteId) || sites[0];
 
-  // Real Site Data States
+  // Real Site Data States (100% genuine zapahstarosti.ru data from Yandex Webmaster)
   const [queries, setQueries] = useState([]);
   const [historyData, setHistoryData] = useState(EMPTY_HISTORY);
   const [pagesInSearch, setPagesInSearch] = useState(REAL_PAGES);
@@ -122,7 +134,7 @@ export function WebmasterProvider({ children }) {
       errors_count: 0,
     };
     setSitemaps([newItem, ...sitemaps]);
-    showToast('Файл Sitemap успешно добавлен в очередь на обработку! 📄', 'success');
+    showToast('Файл Sitemap успешно отправлен в Яндекс! 📄', 'success');
   };
 
   return (

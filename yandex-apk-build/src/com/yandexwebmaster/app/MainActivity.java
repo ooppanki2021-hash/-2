@@ -45,6 +45,9 @@ public class MainActivity extends Activity {
         webView = findViewById(R.id.webview);
         webView.setBackgroundColor(0xFF090C10);
 
+        // Clear webview memory cache on start
+        webView.clearCache(true);
+
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -58,14 +61,13 @@ public class MainActivity extends Activity {
         settings.setSupportZoom(false);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
-        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-        settings.setUserAgentString(settings.getUserAgentString() + " YandexWebmasterApp/1.0");
+        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        settings.setUserAgentString(settings.getUserAgentString() + " YandexWebmasterApp/2.0");
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
 
-        // Enable hardware acceleration
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
         webView.setWebViewClient(new WebViewClient() {
@@ -75,7 +77,6 @@ public class MainActivity extends Activity {
                 if (url.startsWith("http://localhost") || url.startsWith("https://webmaster.yandex.ru") || url.startsWith("file:///")) {
                     return false;
                 }
-                // External links open in browser
                 try {
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                     startActivity(intent);
@@ -125,7 +126,6 @@ public class MainActivity extends Activity {
 
     private void loadAppContent() {
         try {
-            // Read index.html from assets
             InputStream is = getAssets().open("dist/index.html");
             BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
             StringBuilder sb = new StringBuilder();
@@ -137,11 +137,9 @@ public class MainActivity extends Activity {
             is.close();
 
             String html = sb.toString();
-            // Load with base URL https://webmaster.yandex.ru/ so localStorage, fetch & styles work 100% cleanly
             webView.loadDataWithBaseURL("https://webmaster.yandex.ru/", html, "text/html", "UTF-8", null);
         } catch (Exception e) {
             Log.e(TAG, "Error loading bundled index.html: " + e.getMessage(), e);
-            // Fallback to direct file loading
             webView.loadUrl("file:///android_asset/dist/index.html");
         }
     }
